@@ -1,3 +1,7 @@
+# Python virtual environment
+.venv
+venv
+
 # IDE settings
 .idea
 .vscode

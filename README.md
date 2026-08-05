@@ -1,4 +1,5 @@
 # NeuralVisionaries
+
 A Computer Vision project focused on subject-driven image generation.
 
 The goal of this project is to build a pipeline capable of generating diverse images featuring a specific, user-defined
