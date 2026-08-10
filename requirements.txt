@@ -1,0 +1,16 @@
+# Basic requirements
+torch
+torchvision
+
+safetensors
+
+datasets
+pillow
+
+# ML/DL
+diffusers
+transformers
+peft
+
+# Offloading
+accelerate

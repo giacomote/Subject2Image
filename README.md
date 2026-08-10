@@ -31,6 +31,11 @@ file.
 ## 📂 Project Structure
 
     NeuralVisionaries/
+    ├── adaptation/         # Fine-tuned model weights - once ran the project
+    ├── data/               # Default datasets folder - once ran dataset download
+    ├── logs/               # Logs (output and errors) - once ran the project
+    ├── hpc/                # HPC cluster access scripts
     ├── .gitignore
     ├── LICENSE
-    └── README.md
+    ├── README.md
+    └── requirements.txt    # Python requirements
