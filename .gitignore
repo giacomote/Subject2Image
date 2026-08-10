@@ -5,3 +5,7 @@ venv
 # IDE settings
 .idea
 .vscode
+
+# Logs, outputs, datasets
+logs/
+data/
