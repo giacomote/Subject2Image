@@ -11,6 +11,11 @@ __pycache__/
 .idea
 .vscode
 
-# Logs, outputs, datasets
-logs/
+# Datasets and automatically generated folders
 data/
+logs/
+adaptation/
+
+# Temporary files and folders
+temp/
+*temp*

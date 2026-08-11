@@ -31,11 +31,65 @@ file.
 ## 📂 Project Structure
 
     NeuralVisionaries/
-    ├── adaptation/         # Fine-tuned model weights - once ran the project
-    ├── data/               # Default datasets folder - once ran dataset download
-    ├── logs/               # Logs (output and errors) - once ran the project
+    ├── adaptation/         # Fine-tuned model weights - once trained the model
+    ├── config/             # Configuration variables
+    ├── data/               # Default datasets folder - to create before use
     ├── hpc/                # HPC cluster access scripts
+    ├── logs/               # Logs (output and errors) - once ran training/inference
+    ├── results/            # Generated images - once ran the inference process
+    ├── utils/              # Various scripts and models, used around the project
     ├── .gitignore
+    ├── infer.py            # Inference script
     ├── LICENSE
     ├── README.md
-    └── requirements.txt    # Python requirements
+    ├── requirements.txt    # Python requirements
+    └── train.py            # Training script
+
+## 🚀 How to Run the Project
+
+To run the project, follow these simple steps to set up your data and execute the training and inference pipelines.
+
+### 1. Dataset Preparation
+
+Create a `data/` directory in the root of your project and populate it with **5 to 10 images** of your target subject.  
+For optimal results, ensure the images feature varied angles, lighting, and backgrounds.
+
+```bash
+>> cd <...>/NeuralVisionaries
+>> mkdir data/
+```
+
+### 2. Training & Inference
+
+Run the training script first to fine-tune the model on your subject, then use the inference script to generate new
+images. A project like this one is typically ran on HPC clusters.
+
+You can execute the scripts either locally or on an HPC cluster depending on your available compute resources.
+
+> [!NOTE]
+> Once the model has been successfully trained for a specific subject, the training step can be skipped entirely.  
+> You can run the inference script as many times as you like to generate new variations.
+
+#### 🖥️ Local Execution
+
+```bash
+>> cd <...>/NeuralVisionaries
+>> python -m venv .venv
+>> source .venv/bin/activate  # .\.venv\Scripts\activate   on Windows
+>> pip install -r requirements.txt
+
+>> python train.py
+>> python infer.py
+```
+
+#### ⚡ HPC Cluster Execution
+
+```bash
+>> cd <...>/NeuralVisionaries
+>> python -m venv .venv
+>> source .venv/bin/activate
+>> pip install -r requirements.txt
+
+>> sbatch hpc/run_training.sh
+>> sbatch hpc/run_inference.sh
+```
