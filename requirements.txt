@@ -12,5 +12,5 @@ diffusers
 transformers
 peft
 
-# Offloading
-accelerate
+# Optimization
+bitsandbytes

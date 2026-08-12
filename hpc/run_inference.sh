@@ -9,7 +9,7 @@
 #SBATCH --partition=all_usr_prod
 #SBATCH --gres=gpu:1
 #SBATCH --time=00:10:00
-#SBATCH --mem=16G
+#SBATCH --mem=24G
 #SBATCH --constraint="gpu_RTX6000_24G|gpu_RTX_A5000_24G"
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
@@ -20,9 +20,14 @@
 
 export PYTHONNOUSERSITE=1
 export PYTHONUNBUFFERED=1
+
 export TQDM_DISABLE=1
 export HF_HUB_DISABLE_PROGRESS_BARS=1
 
+export HF_HOME="/work/cvcs2026/neural_visionaries/.hf_cache"
+export HF_TOKEN_PATH="~/.cache/huggingface/token"
+
+mkdir -p $HF_HOME
 mkdir -p logs
 
 module purge

@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 
 from diffusers import StableDiffusion3Pipeline
 from peft import LoraConfig, get_peft_model, get_peft_model_state_dict
+from safetensors.torch import save_file
 
 from utils.custom_dataset import CustomDataset
 from config.pipeline_config import PipelineConfig
@@ -23,7 +24,6 @@ def train_dreambooth_lora(
     learning_rate: float = 1e-4,
     device: str = 'cuda'
 ):
-    
     print('--- Fine-Tuning (using LoRA) Started ---\n')
     os.makedirs(output_dir, exist_ok=True)
 
@@ -33,7 +33,7 @@ def train_dreambooth_lora(
         torch_dtype=torch.bfloat16
     ).to(device)
 
-    print(f'[2/9] Computing embeddings for prompt...')
+    print('[2/9] Computing embeddings for prompt...')
     with torch.no_grad():
         prompt_embeds, negative_prompt_embeds, pooled_prompt_embeds, negative_pooled_prompt_embeds = (
             pipe.encode_prompt(
@@ -68,13 +68,14 @@ def train_dreambooth_lora(
             lat = (lat - pipe.vae.config.shift_factor) * pipe.vae.config.scaling_factor
             cached_latents.append(lat.cpu())  # Temporary saving latents in RAM
 
-    print('[5/9] Unloading VAE from GPU (to save VRAM)...')
-    del pipe.vae
+    transformer = pipe.transformer.to(device)
+
+    print('[5/9] Unloading VAE and Pipe from GPU (to save VRAM)...')
+    del pipe
     gc.collect()
     torch.cuda.empty_cache()
 
     print('[6/9] Configuring LoRA on MM-DiT...')
-    transformer = pipe.transformer.to(device)
     transformer.enable_gradient_checkpointing()
     
     lora_config = LoraConfig(
@@ -89,7 +90,6 @@ def train_dreambooth_lora(
     print('[7/9] Applying AdamW 8-bit optimization (to save VRAM)...')
     try:
         optimizer = bnb.optim.AdamW8bit(transformer.parameters(), lr=learning_rate)
-
     except Exception:
         optimizer = torch.optim.AdamW(transformer.parameters(), lr=learning_rate)
         print('[WARN] Cannot apply AdamW 8-bit: switched back to standard AdamW')
@@ -98,11 +98,16 @@ def train_dreambooth_lora(
     global_step = 0
     num_samples = len(cached_latents)
 
+    prompt_embeds = prompt_embeds.to(device)
+    pooled_prompt_embeds = pooled_prompt_embeds.to(device)
+
     while global_step < max_train_steps:
+        optimizer.zero_grad()
+        
         latent_idx = global_step % num_samples
         latents = cached_latents[latent_idx].to(device, dtype=torch.bfloat16)
 
-        noise = torch.randn_like(latents)
+        noise = torch.randn_like(latents, dtype=torch.float32).to(dtype=torch.bfloat16)
         u = torch.rand((latents.shape[0],), device=device, dtype=torch.bfloat16)
         u_expanded = u.view(-1, 1, 1, 1)
         
@@ -111,7 +116,7 @@ def train_dreambooth_lora(
         timesteps = (u * 1000.0).to(dtype=torch.bfloat16)
 
         model_pred = transformer(
-            hidden_states=noisy_latents.to(dtype=torch.bfloat16),
+            hidden_states=noisy_latents,
             timestep=timesteps,
             encoder_hidden_states=prompt_embeds,
             pooled_projections=pooled_prompt_embeds,
@@ -122,7 +127,6 @@ def train_dreambooth_lora(
         loss.backward()
 
         optimizer.step()
-        optimizer.zero_grad()
 
         global_step += 1
         if global_step % 50 == 0 or global_step == max_train_steps:
@@ -134,13 +138,10 @@ def train_dreambooth_lora(
     sd3_lora_state_dict = {}
     for k, v in peft_state_dict.items():
         clean_key = k.replace('base_model.model.', '')
-        sd3_lora_state_dict[clean_key] = v
+        sd3_lora_state_dict[f'transformer.{clean_key}'] = v
 
-    pipe.save_lora_weights(
-        save_directory=output_dir,
-        transformer_lora_layers=sd3_lora_state_dict,
-        safe_serialization=True
-    )
+    save_path = os.path.join(output_dir, 'pytorch_lora_weights.safetensors')
+    save_file(sd3_lora_state_dict, save_path)
 
     print('\n--- Fine-Tuning Ended! ---')
 
@@ -163,6 +164,5 @@ if __name__ == '__main__':
             max_train_steps=400,
             learning_rate=1e-4
         )
-
     else:
         print(f'[ERROR] Please create folder \'{IMAGES_DIR}\' and insert 5-10 images of the subject')
