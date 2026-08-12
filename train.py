@@ -68,9 +68,9 @@ def train_dreambooth_lora(
             lat = (lat - pipe.vae.config.shift_factor) * pipe.vae.config.scaling_factor
             cached_latents.append(lat.cpu())  # Temporary saving latents in RAM
 
-    transformer = pipe.transformer.to(device)
-
     print('[5/9] Unloading VAE and Pipe from GPU (to save VRAM)...')
+    transformer = pipe.transformer.to(device)  # Saving transformer (only thing to keep after pipeline deletion)
+
     del pipe
     gc.collect()
     torch.cuda.empty_cache()
@@ -92,7 +92,7 @@ def train_dreambooth_lora(
         optimizer = bnb.optim.AdamW8bit(transformer.parameters(), lr=learning_rate)
     except Exception:
         optimizer = torch.optim.AdamW(transformer.parameters(), lr=learning_rate)
-        print('[WARN] Cannot apply AdamW 8-bit: switched back to standard AdamW')
+        print('[WARN] Cannot apply AdamW 8-bit: falling back to standard AdamW')
 
     print(f'[8/9] Fine-tuning loop ({max_train_steps} step)...\n')
     global_step = 0

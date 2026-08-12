@@ -1,9 +1,8 @@
 import os
 
-import torch
 from torch.utils.data import Dataset
-
 from torchvision import transforms
+
 from PIL import Image
 
 
@@ -26,7 +25,6 @@ class CustomDataset(Dataset):
         
         self.transform = transforms.Compose([
             transforms.Resize(size, interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(size),
             transforms.ToTensor(),
             transforms.Normalize([0.5], [0.5])  # [-1, 1] normalization (VAE accepted format)
         ])
