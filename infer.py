@@ -1,4 +1,5 @@
 import os
+import gc
 
 import torch
 from diffusers import StableDiffusion3Pipeline
@@ -19,7 +20,10 @@ def generate_personalized_image(
     pipe = StableDiffusion3Pipeline.from_pretrained(
         base_model_id,
         torch_dtype=torch.bfloat16
-    ).to(device)
+    )
+    pipe.enable_model_cpu_offload()  # Automatic offloading to GPU (to avoid using only the GPU)
+
+    pipe.vae.enable_tiling()  # Tiling for VAE decoding (to save VRAM)
 
     print(f'[2/4] Loading adaptation weights from \'{lora_dir}\' ...')
     pipe.load_lora_weights(lora_dir)
@@ -37,6 +41,10 @@ def generate_personalized_image(
     print('[4/4] Saving result...')
     image.save(output_filename)
     print(f'[OK] Image saved: {output_filename}')
+
+    del pipe
+    gc.collect()
+    torch.cuda.empty_cache()
 
     print('\n--- Personalized Image Generation Ended!---')
 
