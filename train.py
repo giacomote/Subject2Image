@@ -151,18 +151,15 @@ def train_dreambooth_lora(
 
 
 if __name__ == '__main__':
-    IMAGES_DIR = PipelineConfig.data_dir
-    LORA_OUTPUT_DIR = PipelineConfig.adaptation_dir
-    TOKEN_IDENTIFIER = 'sks cat'
-    INSTANCE_PROMPT = f'a photo of {TOKEN_IDENTIFIER}'
+    training_prompt = f'A photo of {PipelineConfig.token_identifier}'
 
-    if os.path.exists(IMAGES_DIR):
+    if os.path.exists(PipelineConfig.data_dir):
         train_dreambooth_lora(
-            image_folder=IMAGES_DIR,
-            output_dir=LORA_OUTPUT_DIR,
-            instance_prompt=INSTANCE_PROMPT,
+            image_folder=PipelineConfig.data_dir,
+            output_dir=PipelineConfig.adaptation_dir,
+            instance_prompt=training_prompt,
             max_train_steps=400,
             learning_rate=1e-4
         )
     else:
-        print(f'[ERROR] Please create folder \'{IMAGES_DIR}\' and insert 5-10 images of the subject')
+        print(f'[ERROR] Please create folder \'{PipelineConfig.data_dir}\' and insert 5-10 images of the subject')

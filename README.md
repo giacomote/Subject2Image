@@ -59,7 +59,11 @@ For optimal results, ensure the images feature varied angles, lighting, and back
 >> mkdir data/
 ```
 
-### 2. Training & Inference
+### 2. Configuration
+
+Make sure that the configuration variables in `config/pipeline_config.py` are properly set.
+
+### 3. Training & Inference
 
 Run the training script first to fine-tune the model on your subject, then use the inference script to generate new
 images. A project like this one is typically ran on HPC clusters.
@@ -75,7 +79,7 @@ You can execute the scripts either locally or on an HPC cluster depending on you
 ```bash
 >> cd <...>/NeuralVisionaries
 >> python -m venv .venv
->> source .venv/bin/activate  # .\.venv\Scripts\activate   on Windows
+>> source .venv/bin/activate  # .\.venv\Scripts\activate (on Windows)
 >> pip install -r requirements.txt
 
 >> python train.py

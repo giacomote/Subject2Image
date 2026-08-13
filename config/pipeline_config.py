@@ -7,3 +7,6 @@ class PipelineConfig:
     data_dir = 'data/dreambooth/cat'  # Relative path from project folder
     adaptation_dir = 'adaptation/'
     results_dir = 'results/'
+
+    token_identifier = 'sks cat'
+    prompt = f'A high quality studio photograph of {token_identifier} on the Moon, with the United States flag behind his back'

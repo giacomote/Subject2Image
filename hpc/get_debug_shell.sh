@@ -1,7 +1,7 @@
 #!/bin/bash
 
 srun -Q -J debug \
-    -w ailb-login-02 \
+    -w ailb-login-03 \
     --immediate=20 \
     --partition=all_serial \
     --gres=gpu:1 \

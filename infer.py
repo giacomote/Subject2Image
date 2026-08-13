@@ -50,16 +50,12 @@ def generate_personalized_image(
 
 
 if __name__ == '__main__':
-    LORA_OUTPUT_DIR = PipelineConfig.adaptation_dir
-    TOKEN_IDENTIFIER = 'sks cat'
-
     os.makedirs(PipelineConfig.results_dir, exist_ok=True)
-    
-    TEST_PROMPT = f'A high quality studio photograph of {TOKEN_IDENTIFIER} on a table, with the background of a kitchen'
-    OUTPUT_FILE = PipelineConfig.results_dir + str(len(os.listdir(PipelineConfig.results_dir))) + '.png'
+
+    output_file = PipelineConfig.results_dir + str(len(os.listdir(PipelineConfig.results_dir))) + '.png'
 
     generate_personalized_image(
-        lora_dir=LORA_OUTPUT_DIR,
-        prompt=TEST_PROMPT,
-        output_filename=OUTPUT_FILE
+        lora_dir=PipelineConfig.adaptation_dir,
+        prompt=PipelineConfig.prompt,
+        output_filename=output_file
     )
