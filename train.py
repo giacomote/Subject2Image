@@ -105,27 +105,28 @@ def train_dreambooth_lora(
         optimizer.zero_grad()
         
         latent_idx = global_step % num_samples
-        latents = cached_latents[latent_idx].to(device, dtype=torch.bfloat16)
+        latents = cached_latents[latent_idx].to(device)
 
-        noise = torch.randn_like(latents, dtype=torch.float32).to(dtype=torch.bfloat16)
-        u = torch.rand((latents.shape[0],), device=device, dtype=torch.bfloat16)
+        noise = torch.randn_like(latents)
+        u = torch.rand((latents.shape[0],), device=device)
         u_expanded = u.view(-1, 1, 1, 1)
         
         noisy_latents = (1.0 - u_expanded) * latents + u_expanded * noise
         target = noise - latents
-        timesteps = (u * 1000.0).to(dtype=torch.bfloat16)
+        timesteps = u * 1000.0
 
-        model_pred = transformer(
-            hidden_states=noisy_latents,
-            timestep=timesteps,
-            encoder_hidden_states=prompt_embeds,
-            pooled_projections=pooled_prompt_embeds,
-            return_dict=False
-        )[0]
+        with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
+            model_pred = transformer(
+                hidden_states=noisy_latents,
+                timestep=timesteps,
+                encoder_hidden_states=prompt_embeds,
+                pooled_projections=pooled_prompt_embeds,
+                return_dict=False
+            )[0]
 
-        loss = F.mse_loss(model_pred.float(), target.float(), reduction='mean')
+            loss = F.mse_loss(model_pred.float(), target.float(), reduction='mean')
+
         loss.backward()
-
         optimizer.step()
 
         global_step += 1
