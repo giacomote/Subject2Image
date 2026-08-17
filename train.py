@@ -15,25 +15,26 @@ from utils.custom_dataset import CustomDataset
 from config.pipeline_config import PipelineConfig
 
 
-def train_dreambooth_lora(
+def fine_tuning_lora(
     image_folder: str,
     output_dir: str,
-    instance_prompt: str = 'a photo of sks cat',
+    instance_prompt: str = 'A photo of sks dog',
     base_model_id: str = 'stabilityai/stable-diffusion-3.5-medium',
     max_train_steps: int = 400,
     learning_rate: float = 1e-4,
     device: str = 'cuda'
 ):
+    
     print('--- Fine-Tuning (using LoRA) Started ---\n')
     os.makedirs(output_dir, exist_ok=True)
 
-    print('[1/9] Loading base model...')
+    print('[T 1/9] Loading base model...')
     pipe = StableDiffusion3Pipeline.from_pretrained(
         base_model_id, 
         torch_dtype=torch.bfloat16
     ).to(device)
 
-    print('[2/9] Computing embeddings for prompt...')
+    print('[T 2/9] Computing embeddings for prompt...')
     with torch.no_grad():
         prompt_embeds, negative_prompt_embeds, pooled_prompt_embeds, negative_pooled_prompt_embeds = (
             pipe.encode_prompt(
@@ -45,7 +46,7 @@ def train_dreambooth_lora(
             )
         )
 
-    print('[3/9] Unloading Text Encoder from GPU (to save VRAM)...')
+    print('[T 3/9] Unloading Text Encoder from GPU (to save VRAM)...')
     del pipe.text_encoder, pipe.text_encoder_2
     if hasattr(pipe, 'text_encoder_3') and pipe.text_encoder_3 is not None:
         del pipe.text_encoder_3
@@ -53,7 +54,7 @@ def train_dreambooth_lora(
     gc.collect()
     torch.cuda.empty_cache()
 
-    print('[4/9] Encoding images (in latent space)...')
+    print('[T 4/9] Encoding images (in latent space)...')
     dataset = CustomDataset(image_folder=image_folder, size=1024)
     dataloader = DataLoader(dataset, batch_size=1, shuffle=False)
     
@@ -68,14 +69,14 @@ def train_dreambooth_lora(
             lat = (lat - pipe.vae.config.shift_factor) * pipe.vae.config.scaling_factor
             cached_latents.append(lat.cpu())  # Temporary saving latents in RAM
 
-    print('[5/9] Unloading VAE and Pipe from GPU (to save VRAM)...')
+    print('[T 5/9] Unloading VAE and Pipe from GPU (to save VRAM)...')
     transformer = pipe.transformer.to(device)  # Saving transformer (only thing to keep after pipeline deletion)
 
     del pipe
     gc.collect()
     torch.cuda.empty_cache()
 
-    print('[6/9] Configuring LoRA on MM-DiT...')
+    print('[T 6/9] Configuring LoRA on MM-DiT...')
     transformer.enable_gradient_checkpointing()
     
     lora_config = LoraConfig(
@@ -87,14 +88,14 @@ def train_dreambooth_lora(
     transformer = get_peft_model(transformer, lora_config)
     transformer.train()
 
-    print('[7/9] Applying AdamW 8-bit optimization (to save VRAM)...')
+    print('[T 7/9] Applying AdamW 8-bit optimization (to save VRAM)...')
     try:
         optimizer = bnb.optim.AdamW8bit(transformer.parameters(), lr=learning_rate)
     except Exception:
         optimizer = torch.optim.AdamW(transformer.parameters(), lr=learning_rate)
         print('[WARN] Cannot apply AdamW 8-bit: falling back to standard AdamW')
 
-    print(f'[8/9] Fine-tuning loop ({max_train_steps} step)...\n')
+    print(f'[T 8/9] Fine-tuning loop ({max_train_steps} step)...\n')
     global_step = 0
     num_samples = len(cached_latents)
 
@@ -132,7 +133,7 @@ def train_dreambooth_lora(
         if global_step % 50 == 0 or global_step == max_train_steps:
             print(f'\tStep [{global_step}/{max_train_steps}] - Loss: {loss.item():.4f}')
 
-    print(f'\n[9/9] Saving adaptation weights in: \'{output_dir}\' ...')
+    print(f'\n[T 9/9] Saving adaptation weights in: \'{output_dir}\' ...')
     peft_state_dict = get_peft_model_state_dict(transformer)
 
     sd3_lora_state_dict = {}
@@ -151,13 +152,11 @@ def train_dreambooth_lora(
 
 
 if __name__ == '__main__':
-    training_prompt = f'A photo of {PipelineConfig.token_identifier}'
-
     if os.path.exists(PipelineConfig.data_dir):
-        train_dreambooth_lora(
+        fine_tuning_lora(
             image_folder=PipelineConfig.data_dir,
             output_dir=PipelineConfig.adaptation_dir,
-            instance_prompt=training_prompt,
+            instance_prompt=PipelineConfig.training_prompt,
             max_train_steps=400,
             learning_rate=1e-4
         )

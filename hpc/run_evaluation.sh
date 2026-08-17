@@ -4,12 +4,12 @@
 # SLURM directives
 # ============================================================
 
-#SBATCH --job-name=train
+#SBATCH --job-name=eval
 #SBATCH --account=cvcs2026
 #SBATCH --partition=all_usr_prod
 #SBATCH --gres=gpu:1
-#SBATCH --time=01:00:00
-#SBATCH --mem=16G
+#SBATCH --time=12:00:00
+#SBATCH --mem=24G
 #SBATCH --constraint="gpu_RTX6000_24G|gpu_RTX_A5000_24G|gpu_A40_45G|gpu_L40S_45G"
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
@@ -53,7 +53,7 @@ echo "Assigned GPU    : $GPU_INFO"
 echo "Run started at  : $(date '+%a %b %d %H:%M:%S %Z %Y')"
 echo -e "==================================================\n"
 
-python -u train.py
+python -u eval.py
 
 echo -e "\n=================================================="
 echo "Job completed at: $(date)"

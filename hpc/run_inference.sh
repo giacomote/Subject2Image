@@ -50,7 +50,7 @@ echo "Job name        : $SLURM_JOB_NAME"
 echo "Job ID          : $SLURM_JOB_ID"
 echo "Running on node : $(hostname)"
 echo "Assigned GPU    : $GPU_INFO"
-echo "Run started at  : $(date)"
+echo "Run started at  : $(date '+%a %b %d %H:%M:%S %Z %Y')"
 echo -e "==================================================\n"
 
 python -u infer.py

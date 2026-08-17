@@ -15,6 +15,7 @@ __pycache__/
 data/
 logs/
 adaptation/
+evaluation_images/
 
 # Temporary files and folders
 temp/

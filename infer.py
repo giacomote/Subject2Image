@@ -14,9 +14,10 @@ def generate_personalized_image(
     base_model_id: str = 'stabilityai/stable-diffusion-3.5-medium',
     device: str = 'cuda'
 ):
+    
     print('--- Personalized Image Generation Started ---\n')
     
-    print('[1/4] Loading base model...')
+    print('[I 1/4] Loading base model...')
     pipe = StableDiffusion3Pipeline.from_pretrained(
         base_model_id,
         torch_dtype=torch.bfloat16
@@ -25,10 +26,10 @@ def generate_personalized_image(
 
     pipe.vae.enable_tiling()  # Tiling for VAE decoding (to save VRAM)
 
-    print(f'[2/4] Loading adaptation weights from \'{lora_dir}\' ...')
+    print(f'[I 2/4] Loading adaptation weights from \'{lora_dir}\' ...')
     pipe.load_lora_weights(lora_dir)
 
-    print(f'[3/4] Generating image...')
+    print(f'[I 3/4] Generating image...')
     image = pipe(
         prompt=prompt,
         negative_prompt='blurry, distorted, low quality, bad anatomy',
@@ -38,7 +39,7 @@ def generate_personalized_image(
         height=1024
     ).images[0]
 
-    print('[4/4] Saving result...')
+    print('[I 4/4] Saving result...')
     image.save(output_filename)
     print(f'[OK] Image saved: {output_filename}')
 
@@ -56,6 +57,6 @@ if __name__ == '__main__':
 
     generate_personalized_image(
         lora_dir=PipelineConfig.adaptation_dir,
-        prompt=PipelineConfig.prompt,
+        prompt=PipelineConfig.generation_prompt,
         output_filename=output_file
     )
