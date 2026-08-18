@@ -31,19 +31,21 @@ file.
 ## 📂 Project Structure
 
     NeuralVisionaries/
-    ├── adaptation/         # Fine-tuned model weights - once trained the model
-    ├── config/             # Configuration variables
-    ├── data/               # Default datasets folder - to create before use
-    ├── hpc/                # HPC cluster access scripts
-    ├── logs/               # Logs (output and errors) - once ran training/inference
-    ├── results/            # Generated images - once ran the inference process
-    ├── utils/              # Various scripts and models, used around the project
+    ├── adaptation/           # Fine-tuned model weights - once trained the model
+    ├── config/               # Configuration variables
+    ├── data/                 # Default datasets folder - to create before use
+    ├── evaluation_images/    # Temporary images generated during the evaluation process
+    ├── hpc/                  # HPC cluster access scripts
+    ├── logs/                 # Logs (output and errors) - once ran training/inference
+    ├── results/              # Generated images - once ran the inference process
+    ├── utils/                # Various scripts and models, used around the project
     ├── .gitignore
-    ├── infer.py            # Inference script
+    ├── eval.py               # Pipeline evaluation script
+    ├── infer.py              # Inference script
     ├── LICENSE
     ├── README.md
-    ├── requirements.txt    # Python requirements
-    └── train.py            # Training script
+    ├── requirements.txt      # Python requirements
+    └── train.py              # Training script
 
 ## 🚀 How to Run the Project
 
@@ -63,10 +65,13 @@ For optimal results, ensure the images feature varied angles, lighting, and back
 
 Make sure that the configuration variables in `config/pipeline_config.py` are properly set.
 
-### 3. Training & Inference
+### 3. Training, Inference & Evaluation
 
 Run the training script first to fine-tune the model on your subject, then use the inference script to generate new
-images. A project like this one is typically ran on HPC clusters.
+images.
+
+Alternatively, you can run the evaluation script to visualize the pipeline performances.
+That script will train the model and generate multiple images, to compute then some specific metrics.
 
 You can execute the scripts either locally or on an HPC cluster depending on your available compute resources.
 
@@ -84,6 +89,7 @@ You can execute the scripts either locally or on an HPC cluster depending on you
 
 >> python train.py
 >> python infer.py
+>> python eval.py
 ```
 
 #### ⚡ HPC Cluster Execution
@@ -96,4 +102,5 @@ You can execute the scripts either locally or on an HPC cluster depending on you
 
 >> sbatch hpc/run_training.sh
 >> sbatch hpc/run_inference.sh
+>> sbatch hpc/run_evaluation.sh
 ```

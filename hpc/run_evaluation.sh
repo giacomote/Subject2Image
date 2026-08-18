@@ -51,7 +51,7 @@ echo "Job ID          : $SLURM_JOB_ID"
 echo "Running on node : $(hostname)"
 echo "Assigned GPU    : $GPU_INFO"
 echo "Run started at  : $(date '+%a %b %d %H:%M:%S %Z %Y')"
-echo -e "==================================================\n"
+echo "=================================================="
 
 python -u eval.py
 

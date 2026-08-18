@@ -44,13 +44,13 @@ class EvaluationConfig:
         for cfg in subject_cfgs
     ]
 
-    generation_prompts_live = [
+    generation_prompts_live = [  # Keep the number of prompts the same as for 'generation_prompts_object'
         'A high quality studio photograph of {0} sitting on a sofa',
         'A high quality studio photograph of {0} running on a beach',
-        'A high quality studio photograph of {0} wearing a small top hat',   
+        'A high quality studio photograph of {0} wearing a small top hat',
     ]
 
-    generation_prompts_object = [
+    generation_prompts_object = [  # Keep the number of prompts the same as for 'generation_prompts_live'
         'A high quality studio photograph of {0} on the surface of a frozen lake',
         'A high quality studio photograph of {0} on the grass with a yellow house in the background',
         'A high quality studio photograph of {0} on top of a dirt road',
