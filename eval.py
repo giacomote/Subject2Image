@@ -8,45 +8,28 @@ from PIL import Image
 from train import fine_tuning_lora
 from infer import generate_personalized_image
 from utils.subject_metrics import SubjectMetrics
+from utils.dataset_metrics import DatasetMetrics
 
 from config.pipeline_config import PipelineConfig
 from config.evaluation_config import EvaluationConfig
 
 
-def test_subject_driven_pipeline(
-    subject_name,
-    token_identifier,
-    data_dir,
-    training_prompt,
-    test_prompts,
-    samples_per_prompt,
-    adaptation_dir,
-    generation_dir,
-    evaluator
-):
+def train_and_generate_for_subject(
+    subject_name: str,
+    token_identifier: str,
+    data_dir: str,
+    training_prompt: str,
+    test_prompts: list[str],
+    samples_per_prompt: int,
+    adaptation_dir: str,
+    subject_gen_dir: str
+) -> str:
 
-    """
-    Testing the model for each subject in the dataset:
-    1. Fine-Tuning the model on the subject
-    2. Generating N images on M prompt
-    3. Computing average CLIP-I and CLIP-T on the generated images
-    4. Asserting the resulting CLIP values
-    """
-
-    print(f'\n--- Testing on subject \'{subject_name}\' ---\n')
+    print(f'\n--- Training and generating on subject \'{subject_name}\' ---\n')
 
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
-    print(f'[E 1/4] Loading reference images (from dataset)...')
-    reference_images = []
-    for file in os.listdir(data_dir):
-        if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-            img_path = os.path.join(data_dir, file)
-            reference_images.append(Image.open(img_path).convert('RGB'))
-            
-    assert len(reference_images) > 0, f'({data_dir}) No images found'
-
-    print(f'[E 2/4] Fine-Tuning...\n')
+    print(f'[TG 1/2] Fine-Tuning (LoRA)...\n')
     fine_tuning_lora(
         image_folder=data_dir,
         output_dir=adaptation_dir,
@@ -62,15 +45,14 @@ def test_subject_driven_pipeline(
     gc.collect()
     torch.cuda.empty_cache()
 
-    print(f'\n[E 3/4] Generating images...\n')
-    generation_dir = os.path.join(generation_dir, subject_name)
-    os.makedirs(generation_dir, exist_ok=True)
+    print(f'\n[TG 2/2] Generating images...\n')
+    subject_gen_dir = os.path.join(subject_gen_dir, subject_name)
+    os.makedirs(subject_gen_dir, exist_ok=True)
 
-    generated_samples = []
-
+    generated_count = 0
     for p_idx, prompt in enumerate(test_prompts):
         for s_idx in range(samples_per_prompt):
-            output_filename = os.path.join(generation_dir, f'sample_P{p_idx}_S{s_idx}.png')
+            output_filename = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
             
             generate_personalized_image(
                 lora_dir=adaptation_dir,
@@ -79,62 +61,104 @@ def test_subject_driven_pipeline(
             )
             
             assert os.path.exists(output_filename), f'({output_filename}) Generated image not found'
-            gen_img = Image.open(output_filename).convert('RGB')
-            generated_samples.append((gen_img, prompt))
+            generated_count += 1
 
             gc.collect()
             torch.cuda.empty_cache()
 
-    print(f'[OK] {len(generated_samples)} samples generated for \'{subject_name}\'')
+    print(f'[OK] {generated_count} samples generated for \'{subject_name}\'')
+    return subject_gen_dir
 
-    print(f'\n[E 4/4] Computing CLIP & DINO metrics (on all the samples)...')
+
+def evaluate_subject_metrics(
+    subject_name: str,
+    token_identifier: str,
+    data_dir: str,
+    subject_gen_dir: str,
+    test_prompts: list[str],
+    samples_per_prompt: int,
+    evaluator: SubjectMetrics
+) -> tuple[float, float, float]:
+
+    print(f'\n--- Computing subject metrics on subject \'{subject_name}\' ---\n')
+
+    print('[SM 1/2] Loading reference images...')
+    reference_images = []
+    for file in os.listdir(data_dir):
+        if file.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
+            reference_images.append(Image.open(os.path.join(data_dir, file)).convert('RGB'))
+
+    assert len(reference_images) > 0, f'({data_dir}) No reference images found'
+
+    print('[SM 2/2] Computing CLIP & DINO metrics...')
     clip_t_scores = []
     clip_i_scores = []
     dino_i_scores = []
 
-    for gen_img, prompt in generated_samples:
-        score_t = evaluator.compute_clip_t(gen_img, prompt)
-        clip_t_scores.append(score_t)
+    for p_idx, prompt in enumerate(test_prompts):
+        formatted_prompt = prompt.format(token_identifier)
 
-        score_i = evaluator.compute_clip_i(gen_img, reference_images)
-        clip_i_scores.append(score_i)
+        for s_idx in range(samples_per_prompt):
+            sample_path = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
+            gen_img = Image.open(sample_path).convert('RGB')
 
-        score_dino = evaluator.compute_dino_i(gen_img, reference_images)
-        dino_i_scores.append(score_dino)
+            clip_t_scores.append(evaluator.compute_clip_t(gen_img, formatted_prompt))
+            clip_i_scores.append(evaluator.compute_clip_i(gen_img, reference_images))
+            dino_i_scores.append(evaluator.compute_dino_i(gen_img, reference_images))
 
     mean_clip_t = sum(clip_t_scores) / len(clip_t_scores)
     mean_clip_i = sum(clip_i_scores) / len(clip_i_scores)
     mean_dino_i = sum(dino_i_scores) / len(dino_i_scores)
 
-    print('\n--------------------------------------------------')
+    print('--------------------------------------------------')
     print(f' RESULTS FOR \'{subject_name}\':')
-    print(f' - Total generated samples : {len(generated_samples)}')
-    print(f' - Avg CLIP-T (Text)       : {mean_clip_t:.4f}')
-    print(f' - Avg CLIP-I (Image)      : {mean_clip_i:.4f}')
-    print(f' - Avg DINO-I (Image)      : {mean_dino_i:.4f}')
+    print(f' - Avg CLIP-T (Text)  : {mean_clip_t:.4f}')
+    print(f' - Avg CLIP-I (Image) : {mean_clip_i:.4f}')
+    print(f' - Avg DINO-I (Image) : {mean_dino_i:.4f}')
     print('--------------------------------------------------')
 
     if mean_clip_t < 0.25:
         print(f'[WARN] Average CLIP-T ({mean_clip_t:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.25)')
-    
     if mean_clip_i < 0.70:
         print(f'[WARN] Average CLIP-I ({mean_clip_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.70)')
-
     if mean_dino_i < 0.60:
         print(f'[WARN] Average DINO-I ({mean_dino_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.60)')
 
     return mean_clip_t, mean_clip_i, mean_dino_i
 
 
+def evaluate_dataset_metrics(
+    real_dataset_dir: str,
+    gen_dataset_dir: str,
+    evaluator: DatasetMetrics
+) -> tuple[float, float]:
+
+    print('\n--- Computing Dataset-Level Metrics (FID & KID) ---\n')
+
+    print('[DM 1/2] Loading dataset images and extracting Inception features...')
+    real_feats, gen_feats = evaluator.extract_dataset_features(real_dataset_dir, gen_dataset_dir)
+
+    print('\n[DM 2/2] Computing Dataset FID and KID...')
+    fid_score = evaluator.compute_fid(real_feats, gen_feats)
+    kid_score = evaluator.compute_kid(real_feats, gen_feats)
+
+    return fid_score, kid_score
+
+
 if __name__ == '__main__':
-    global_evaluator = SubjectMetrics()
+    subject_evaluator = SubjectMetrics()
     
     dataset_clip_t_scores = []
     dataset_clip_i_scores = []
     dataset_dino_i_scores = []
     subject_count = 0
 
-    for subject_idx, subject_name in enumerate(os.listdir(EvaluationConfig.data_dir)):
+    subject_folders = sorted([
+        f for f in os.listdir(EvaluationConfig.data_dir)
+        if os.path.isdir(os.path.join(EvaluationConfig.data_dir, f))
+    ])
+
+    for subject_idx, subject_name in enumerate(subject_folders):
         data_dir = os.path.join(EvaluationConfig.data_dir, subject_name)
 
         if EvaluationConfig.subject_cfgs[subject_idx]['living']:
@@ -142,16 +166,29 @@ if __name__ == '__main__':
         else:
             test_prompts = EvaluationConfig.generation_prompts_object
 
-        sub_clip_t, sub_clip_i, sub_dino_i = test_subject_driven_pipeline(
+        token_id = EvaluationConfig.subject_cfgs[subject_idx]['token_identifier']
+
+        # Training the model and generating images for each subject
+        subject_gen_dir = train_and_generate_for_subject(
             subject_name=subject_name,
-            token_identifier=EvaluationConfig.subject_cfgs[subject_idx]['token_identifier'],
+            token_identifier=token_id,
             data_dir=data_dir,
             training_prompt=EvaluationConfig.training_prompts[subject_idx],
             test_prompts=test_prompts,
             samples_per_prompt=EvaluationConfig.samples_per_prompt,
             adaptation_dir=PipelineConfig.adaptation_dir,
-            generation_dir=EvaluationConfig.generation_dir,
-            evaluator=global_evaluator
+            subject_gen_dir=EvaluationConfig.generation_dir
+        )
+
+        # Computing subject metrics
+        sub_clip_t, sub_clip_i, sub_dino_i = evaluate_subject_metrics(
+            subject_name=subject_name,
+            token_identifier=token_id,
+            data_dir=data_dir,
+            subject_gen_dir=subject_gen_dir,
+            test_prompts=test_prompts,
+            samples_per_prompt=EvaluationConfig.samples_per_prompt,
+            evaluator=subject_evaluator
         )
 
         dataset_clip_t_scores.append(sub_clip_t)
@@ -159,17 +196,35 @@ if __name__ == '__main__':
         dataset_dino_i_scores.append(sub_dino_i)
         subject_count += 1
 
+        gc.collect()
+        torch.cuda.empty_cache()
+
     if subject_count > 0:
         dataset_mean_clip_t = sum(dataset_clip_t_scores) / subject_count
         dataset_mean_clip_i = sum(dataset_clip_i_scores) / subject_count
         dataset_mean_dino_i = sum(dataset_dino_i_scores) / subject_count
         
-        print('\n************************************************')
-        print(' FINAL DATASET RESULTS:')
+        # Freeing memory from CLIP and DINO evaluators
+        del subject_evaluator
+        gc.collect()
+        torch.cuda.empty_cache()
+
+        # Computing Dataset-Level Metrics (FID & KID)
+        dataset_evaluator = DatasetMetrics()
+        global_fid, global_kid = evaluate_dataset_metrics(
+            real_dataset_dir=EvaluationConfig.data_dir,
+            gen_dataset_dir=EvaluationConfig.generation_dir,
+            evaluator=dataset_evaluator
+        )
+
+        print('\n**************************************************')
+        print(' FINAL DATASET EVALUATION RESULTS:')
         print(f' - Total tested subjects      : {subject_count}')
         print(f' - Dataset Avg CLIP-T (Text)  : {dataset_mean_clip_t:.4f}')
         print(f' - Dataset Avg CLIP-I (Image) : {dataset_mean_clip_i:.4f}')
         print(f' - Dataset Avg DINO-I (Image) : {dataset_mean_dino_i:.4f}')
-        print('**************************************************\n')
+        print(f' - Global Dataset FID         : {global_fid:.4f}')
+        print(f' - Global Dataset KID         : {global_kid:.4f}')
+        print('**************************************************')
     else:
         print('\n[WARN] No subjects found in the dataset folder\n')

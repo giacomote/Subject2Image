@@ -5,6 +5,8 @@ torchvision==0.20.1+cu121
 
 safetensors
 
+scipy
+
 matplotlib
 pillow
 
