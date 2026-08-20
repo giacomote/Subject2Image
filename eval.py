@@ -34,7 +34,7 @@ def train_and_generate_for_subject(
         image_folder=data_dir,
         output_dir=adaptation_dir,
         instance_prompt=training_prompt,
-        max_train_steps=400,
+        max_train_steps=1200,
         learning_rate=1e-4
     )
     

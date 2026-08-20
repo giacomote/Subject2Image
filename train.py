@@ -20,7 +20,7 @@ def fine_tuning_lora(
     output_dir: str,
     instance_prompt: str = 'A photo of sks dog',
     base_model_id: str = 'stabilityai/stable-diffusion-3.5-medium',
-    max_train_steps: int = 400,
+    max_train_steps: int = 1200,
     learning_rate: float = 1e-4,
     device: str = 'cuda'
 ):
@@ -157,7 +157,7 @@ if __name__ == '__main__':
             image_folder=PipelineConfig.data_dir,
             output_dir=PipelineConfig.adaptation_dir,
             instance_prompt=PipelineConfig.training_prompt,
-            max_train_steps=400,
+            max_train_steps=1200,
             learning_rate=1e-4
         )
     else:
