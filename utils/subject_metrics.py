@@ -1,14 +1,16 @@
 import torch
 import torch.nn.functional as F
+import torchvision.transforms as T
 
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel, AutoImageProcessor, AutoModel
+import lpips
 
 
 class SubjectMetrics:
     """
     Compute evaluation metrics which are related to the single subject.
-    Those metrics are CLIP-I, CLIP-T, DINO-I.
+    Those metrics are CLIP-I, CLIP-T, DINO-I, LPIPS.
     """
 
     def __init__(self, clip_model_id='openai/clip-vit-base-patch32', dino_model_id='facebook/dinov2-base', device='cuda'):
@@ -27,6 +29,17 @@ class SubjectMetrics:
             dino_model_id,
             use_safetensors=True
         ).to(self.device)
+
+        # Loading LPIPS evaluator
+        print("Loading LPIPS (VGG) model...")
+        self.lpips_model = lpips.LPIPS(net='vgg').to(self.device)
+        self.lpips_model.eval()
+
+        self.lpips_transform = T.Compose([
+            T.Resize((256, 256)), 
+            T.ToTensor(),
+            T.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
 
     def compute_clip_t(self, generated_image: Image.Image, prompt: str) -> float:
         inputs = self.processor(text=[prompt], images=generated_image, return_tensors='pt', padding=True).to(self.device)
@@ -68,3 +81,19 @@ class SubjectMetrics:
 
         similarities = F.cosine_similarity(gen_embeds.unsqueeze(1), ref_embeds.unsqueeze(0), dim=-1)
         return similarities.mean().item()
+
+    def compute_lpips(self, generated_img: Image.Image, reference_images: list[Image.Image]) -> float:
+        if not reference_images:
+            return float('nan')
+
+        gen_tensor = self.lpips_transform(generated_img).unsqueeze(0).to(self.device)
+
+        lpips_scores = []
+        with torch.no_grad():
+            for ref_img in reference_images:
+                ref_tensor = self.lpips_transform(ref_img).unsqueeze(0).to(self.device)
+                
+                distance = self.lpips_model(gen_tensor, ref_tensor)
+                lpips_scores.append(distance.item())
+
+        return sum(lpips_scores) / len(lpips_scores)

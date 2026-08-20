@@ -78,7 +78,7 @@ def evaluate_subject_metrics(
     test_prompts: list[str],
     samples_per_prompt: int,
     evaluator: SubjectMetrics
-) -> tuple[float, float, float]:
+) -> tuple[float, float, float, float]:
 
     print(f'\n--- Computing subject metrics on subject \'{subject_name}\' ---\n')
 
@@ -90,10 +90,11 @@ def evaluate_subject_metrics(
 
     assert len(reference_images) > 0, f'({data_dir}) No reference images found'
 
-    print('[SM 2/2] Computing CLIP & DINO metrics...')
+    print('[SM 2/2] Computing CLIP, DINO, LPIPS metrics...')
     clip_t_scores = []
     clip_i_scores = []
     dino_i_scores = []
+    lpips_scores = []
 
     for p_idx, prompt in enumerate(test_prompts):
         formatted_prompt = prompt.format(token_identifier)
@@ -105,16 +106,19 @@ def evaluate_subject_metrics(
             clip_t_scores.append(evaluator.compute_clip_t(gen_img, formatted_prompt))
             clip_i_scores.append(evaluator.compute_clip_i(gen_img, reference_images))
             dino_i_scores.append(evaluator.compute_dino_i(gen_img, reference_images))
+            lpips_scores.append(evaluator.compute_lpips(gen_img, reference_images))
 
     mean_clip_t = sum(clip_t_scores) / len(clip_t_scores)
     mean_clip_i = sum(clip_i_scores) / len(clip_i_scores)
     mean_dino_i = sum(dino_i_scores) / len(dino_i_scores)
+    mean_lpips = sum(lpips_scores) / len(lpips_scores)
 
     print('--------------------------------------------------')
     print(f' RESULTS FOR \'{subject_name}\':')
     print(f' - Avg CLIP-T (Text)  : {mean_clip_t:.4f}')
     print(f' - Avg CLIP-I (Image) : {mean_clip_i:.4f}')
     print(f' - Avg DINO-I (Image) : {mean_dino_i:.4f}')
+    print(f' - Avg LPIPS (Image)  : {mean_lpips:.4f}')
     print('--------------------------------------------------')
 
     if mean_clip_t < 0.25:
@@ -123,8 +127,10 @@ def evaluate_subject_metrics(
         print(f'[WARN] Average CLIP-I ({mean_clip_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.70)')
     if mean_dino_i < 0.60:
         print(f'[WARN] Average DINO-I ({mean_dino_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.60)')
+    if mean_lpips > 0.40:
+         print(f'[WARN] Average LPIPS ({mean_lpips:.4f}) is high for \'{subject_name}\' (thresh: 0.40)')
 
-    return mean_clip_t, mean_clip_i, mean_dino_i
+    return mean_clip_t, mean_clip_i, mean_dino_i, mean_lpips
 
 
 def evaluate_dataset_metrics(
@@ -151,6 +157,7 @@ if __name__ == '__main__':
     dataset_clip_t_scores = []
     dataset_clip_i_scores = []
     dataset_dino_i_scores = []
+    dataset_lpips_scores = []
     subject_count = 0
 
     subject_folders = sorted([
@@ -181,7 +188,7 @@ if __name__ == '__main__':
         )
 
         # Computing subject metrics
-        sub_clip_t, sub_clip_i, sub_dino_i = evaluate_subject_metrics(
+        sub_clip_t, sub_clip_i, sub_dino_i, sub_lpips = evaluate_subject_metrics(
             subject_name=subject_name,
             token_identifier=token_id,
             data_dir=data_dir,
@@ -194,6 +201,7 @@ if __name__ == '__main__':
         dataset_clip_t_scores.append(sub_clip_t)
         dataset_clip_i_scores.append(sub_clip_i)
         dataset_dino_i_scores.append(sub_dino_i)
+        dataset_lpips_scores.append(sub_lpips)
         subject_count += 1
 
         gc.collect()
@@ -203,6 +211,7 @@ if __name__ == '__main__':
         dataset_mean_clip_t = sum(dataset_clip_t_scores) / subject_count
         dataset_mean_clip_i = sum(dataset_clip_i_scores) / subject_count
         dataset_mean_dino_i = sum(dataset_dino_i_scores) / subject_count
+        dataset_mean_lpips = sum(dataset_lpips_scores) / subject_count
         
         # Freeing memory from CLIP and DINO evaluators
         del subject_evaluator
@@ -223,6 +232,7 @@ if __name__ == '__main__':
         print(f' - Dataset Avg CLIP-T (Text)  : {dataset_mean_clip_t:.4f}')
         print(f' - Dataset Avg CLIP-I (Image) : {dataset_mean_clip_i:.4f}')
         print(f' - Dataset Avg DINO-I (Image) : {dataset_mean_dino_i:.4f}')
+        print(f' - Dataset Avg LPIPS (Image)  : {dataset_mean_lpips:.4f}')
         print(f' - Global Dataset FID         : {global_fid:.4f}')
         print(f' - Global Dataset KID         : {global_kid:.4f}')
         print('**************************************************')

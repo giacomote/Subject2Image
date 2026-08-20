@@ -10,6 +10,8 @@ scipy
 matplotlib
 pillow
 
+lpips
+
 # ML/DL
 diffusers
 transformers
