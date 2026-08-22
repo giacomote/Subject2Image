@@ -1,4 +1,4 @@
-# NeuralVisionaries
+# Subject2Image
 
 A Computer Vision project focused on subject-driven image generation.
 
@@ -30,7 +30,7 @@ file.
 
 ## 📂 Project Structure
 
-    NeuralVisionaries/
+    Subject2Image/
     ├── adaptation/           # Fine-tuned model weights - once trained the model
     ├── config/               # Configuration variables
     ├── data/                 # Default datasets folder - to create before use
@@ -57,7 +57,7 @@ Create a `data/` directory in the root of your project and populate it with **5 
 For optimal results, ensure the images feature varied angles, lighting, and backgrounds.
 
 ```bash
->> cd <...>/NeuralVisionaries
+>> cd <...>/Subject2Image
 >> mkdir data/
 ```
 
@@ -82,7 +82,7 @@ You can execute the scripts either locally or on an HPC cluster depending on you
 #### 🖥️ Local Execution
 
 ```bash
->> cd <...>/NeuralVisionaries
+>> cd <...>/Subject2Image
 >> python -m venv .venv
 >> source .venv/bin/activate  # .\.venv\Scripts\activate (on Windows)
 >> pip install -r requirements.txt
@@ -95,7 +95,7 @@ You can execute the scripts either locally or on an HPC cluster depending on you
 #### ⚡ HPC Cluster Execution
 
 ```bash
->> cd <...>/NeuralVisionaries
+>> cd <...>/Subject2Image
 >> python -m venv .venv
 >> source .venv/bin/activate
 >> pip install -r requirements.txt

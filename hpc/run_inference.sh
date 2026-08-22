@@ -6,11 +6,11 @@
 
 #SBATCH --job-name=infer
 #SBATCH --account=cvcs2026
-#SBATCH --partition=all_usr_prod
+#SBATCH --partition=boost_usr_prod
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:10:00
-#SBATCH --mem=24G
-#SBATCH --constraint="gpu_RTX6000_24G|gpu_RTX_A5000_24G|gpu_A40_45G|gpu_L40S_45G"
+#SBATCH --time=00:30:00
+#SBATCH --mem=64G
+#SBATCH --constraint="gpu_A40_45G|gpu_L40S_45G"
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 
@@ -34,9 +34,9 @@ module purge
 module load cuda/12.6.3
 module load python/3.11.15
 
-cd ~/NeuralVisionaries
+cd ~/Subject2Image
 
-source ~/NeuralVisionaries/.venv/bin/activate
+source ~/Subject2Image/.venv/bin/activate
 
 # ============================================================
 # Launch Python script
