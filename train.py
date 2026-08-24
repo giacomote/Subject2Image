@@ -8,6 +8,7 @@ import bitsandbytes as bnb
 from torch.utils.data import DataLoader
 
 from diffusers import StableDiffusion3Pipeline
+from diffusers.optimization import get_cosine_schedule_with_warmup
 from peft import LoraConfig, get_peft_model, get_peft_model_state_dict
 from safetensors.torch import save_file
 
@@ -19,7 +20,7 @@ def fine_tuning_lora(
     image_folder: str,
     output_dir: str,
     instance_prompt: str = 'A photo of sks dog',
-    base_model_id: str = 'stabilityai/stable-diffusion-3.5-medium',
+    base_model_id: str = 'stabilityai/stable-diffusion-3.5-large',
     max_train_steps: int = 1200,
     learning_rate: float = 1e-4,
     device: str = 'cuda'
@@ -95,6 +96,13 @@ def fine_tuning_lora(
         optimizer = torch.optim.AdamW(transformer.parameters(), lr=learning_rate)
         print('[WARN] Cannot apply AdamW 8-bit: falling back to standard AdamW')
 
+    # LR Scheduler
+    lr_scheduler = get_cosine_schedule_with_warmup(
+        optimizer=optimizer,
+        num_warmup_steps=int(max_train_steps * 0.10),  # Warm-up over the first 10% of the steps
+        num_training_steps=max_train_steps
+    )
+
     print(f'[T 8/9] Fine-tuning loop ({max_train_steps} step)...\n')
     global_step = 0
     num_samples = len(cached_latents)
@@ -128,10 +136,12 @@ def fine_tuning_lora(
         loss.backward()
 
         optimizer.step()
+        lr_scheduler.step()
 
         global_step += 1
         if global_step % 50 == 0 or global_step == max_train_steps:
-            print(f'\tStep [{global_step}/{max_train_steps}] - Loss: {loss.item():.4f}')
+            current_lr = lr_scheduler.get_last_lr()[0]
+            print(f'\tStep [{global_step}/{max_train_steps}] - Loss: {loss.item():.4f} - LR: {current_lr:.6f}')
 
     print(f'\n[T 9/9] Saving adaptation weights in: \'{output_dir}\' ...')
     peft_state_dict = get_peft_model_state_dict(transformer)

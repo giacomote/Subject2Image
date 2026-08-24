@@ -11,8 +11,7 @@ def generate_personalized_image(
     lora_dir: str,
     prompt: str,
     output_filename: str = 'result.png',
-    base_model_id: str = 'stabilityai/stable-diffusion-3.5-medium',
-    device: str = 'cuda'
+    base_model_id: str = 'stabilityai/stable-diffusion-3.5-large'
 ):
     
     print('--- Personalized Image Generation Started ---\n')
