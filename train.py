@@ -81,9 +81,9 @@ def fine_tuning_lora(
     transformer.enable_gradient_checkpointing()
     
     lora_config = LoraConfig(
-        r=16,
-        lora_alpha=16,
-        target_modules=['to_q', 'to_k', 'to_v', 'to_out.0'],
+        r=32, 
+        lora_alpha=32,
+        target_modules=['to_q', 'to_k', 'to_v', 'to_out.0', 'add_q_proj', 'add_k_proj', 'add_v_proj', 'to_add_out'],
         init_lora_weights='gaussian'
     )
     transformer = get_peft_model(transformer, lora_config)
