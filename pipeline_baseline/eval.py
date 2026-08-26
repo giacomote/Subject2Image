@@ -1,17 +1,30 @@
 import os
 import gc
 
+import sys
+from pathlib import Path
+
 import torch
 
 from PIL import Image
 
-from train import fine_tuning_lora
-from infer import generate_personalized_image
+# Filtering Warnings
+import warnings
+
+warnings.filterwarnings(UserWarning, 'ignore')
+warnings.filterwarnings(FutureWarning, 'ignore')
+
+# Loading local files
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+from pipeline_baseline.pipeline import BaselinePipe
 from utils.subject_metrics import SubjectMetrics
 from utils.dataset_metrics import DatasetMetrics
 
-from config.pipeline_config import PipelineConfig
-from config.evaluation_config import EvaluationConfig
+from pipeline_baseline.config.pipeline_config import PipelineConfig
+from pipeline_baseline.config.evaluation_config import EvaluationConfig
 
 
 def train_and_generate_for_subject(
@@ -30,7 +43,9 @@ def train_and_generate_for_subject(
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
     print(f'[TG 1/2] Fine-Tuning (LoRA)...\n')
-    fine_tuning_lora(
+    pipe = BaselinePipe()
+
+    pipe.fine_tuning_lora(
         image_folder=data_dir,
         output_dir=adaptation_dir,
         instance_prompt=training_prompt,
@@ -54,7 +69,7 @@ def train_and_generate_for_subject(
         for s_idx in range(samples_per_prompt):
             output_filename = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
             
-            generate_personalized_image(
+            pipe.generate_personalized_image(
                 lora_dir=adaptation_dir,
                 prompt=prompt.format(token_identifier),
                 output_filename=output_filename

@@ -1,3 +1,6 @@
+import os
+import contextlib
+
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as T
@@ -31,8 +34,8 @@ class SubjectMetrics:
         ).to(self.device)
 
         # Loading LPIPS evaluator
-        print("Loading LPIPS (VGG) model...")
-        self.lpips_model = lpips.LPIPS(net='vgg').to(self.device)
+        with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
+            self.lpips_model = lpips.LPIPS(net='vgg').to(self.device)
         self.lpips_model.eval()
 
         self.lpips_transform = T.Compose([

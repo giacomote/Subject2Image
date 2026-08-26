@@ -4,7 +4,7 @@
 # SLURM directives
 # ============================================================
 
-#SBATCH --job-name=train
+#SBATCH --job-name=s2i-train
 #SBATCH --account=cvcs2026
 #SBATCH --partition=boost_usr_prod
 #SBATCH --gres=gpu:1
@@ -13,6 +13,31 @@
 #SBATCH --constraint="gpu_A40_45G|gpu_L40S_45G"
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
+
+# ============================================================
+# Checking submit directory
+# ============================================================
+
+if [[ "$SLURM_SUBMIT_DIR" != *"Subject2Image"* ]]; then
+    echo "[ERROR] Please submit the job from the root of the repository" >&2
+    exit 1
+fi
+
+# ============================================================
+# Mode validation
+# ============================================================
+
+MODE=$1
+
+if [ "$MODE" == "baseline" ]; then
+    TARGET_FILE="pipeline_baseline/train.py"
+elif [ "$MODE" == "modified" ]; then
+    TARGET_FILE="pipeline_modified/train.py"
+else
+    echo "[ERROR] Missing mode specification" >&2
+    echo "Usage: sbatch $0 [baseline|modified]" >&2
+    exit 1
+fi
 
 # ============================================================
 # Preliminary operations
@@ -34,9 +59,8 @@ module purge
 module load cuda/12.6.3
 module load python/3.11.15
 
-cd ~/Subject2Image
-
-source ~/Subject2Image/.venv/bin/activate
+cd $SLURM_SUBMIT_DIR
+source .venv/bin/activate
 
 # ============================================================
 # Launch Python script
@@ -53,7 +77,7 @@ echo "Assigned GPU    : $GPU_INFO"
 echo "Run started at  : $(date '+%a %b %d %H:%M:%S %Z %Y')"
 echo -e "==================================================\n"
 
-python -u train.py
+python -u $TARGET_FILE
 
 echo -e "\n=================================================="
 echo "Job completed at: $(date '+%a %b %d %H:%M:%S %Z %Y')"
