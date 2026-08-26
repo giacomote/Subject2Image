@@ -19,18 +19,19 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
-from pipeline_baseline.pipeline import BaselinePipe
+from pipeline_modified.pipeline import ModifiedPipe
 from utils.subject_metrics import SubjectMetrics
 from utils.dataset_metrics import DatasetMetrics
 
-from pipeline_baseline.config.pipeline_config import PipelineConfig
-from pipeline_baseline.config.evaluation_config import EvaluationConfig
+from pipeline_modified.config.pipeline_config import PipelineConfig
+from pipeline_modified.config.evaluation_config import EvaluationConfig
 
 
 def train_and_generate_for_subject(
     subject_name: str,
     token_identifier: str,
     data_dir: str,
+    training_steps: int,
     training_prompt: str,
     test_prompts: list[str],
     samples_per_prompt: int,
@@ -43,17 +44,17 @@ def train_and_generate_for_subject(
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
     print(f'[TG 1/2] Fine-Tuning (LoRA)...\n')
-    pipe = BaselinePipe()
+    pipe = ModifiedPipe()
 
     pipe.fine_tuning_lora(
         image_folder=data_dir,
         output_dir=adaptation_dir,
         instance_prompt=training_prompt,
-        max_train_steps=1200,
+        max_train_steps=training_steps,
         learning_rate=1e-4
     )
     
-    weights_path = os.path.join(adaptation_dir, 'base_lora_weights.safetensors')
+    weights_path = os.path.join(adaptation_dir, 'mod_lora_weights.safetensors')
     assert os.path.exists(weights_path), f'({weights_path}) No adaptation weights found'
 
     # Freeing up GPU memory before inference
@@ -195,6 +196,7 @@ if __name__ == '__main__':
             subject_name=subject_name,
             token_identifier=token_id,
             data_dir=data_dir,
+            training_steps=EvaluationConfig.subject_cfgs[subject_idx]['training_steps'],
             training_prompt=EvaluationConfig.training_prompts[subject_idx],
             test_prompts=test_prompts,
             samples_per_prompt=EvaluationConfig.samples_per_prompt,

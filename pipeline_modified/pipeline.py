@@ -15,12 +15,12 @@ from safetensors.torch import save_file
 from utils.custom_dataset import CustomDataset
 
 
-class BaselinePipe:
+class ModifiedPipe:
     def __init__(self):
-            self._model_id = 'stabilityai/stable-diffusion-3.5-large'
-            self._weight_name = 'base_lora_weights.safetensors'
-            self._inference_pipe = None
-    
+        self._model_id = 'stabilityai/stable-diffusion-3.5-large'
+        self._weight_name = 'mod_lora_weights.safetensors'
+        self._inference_pipe = None
+
     def _free_inference_memory(self):
         if self._inference_pipe is not None:
             del self._inference_pipe
