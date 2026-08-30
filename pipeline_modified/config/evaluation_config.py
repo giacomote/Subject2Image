@@ -4,7 +4,7 @@ class EvaluationConfig:
     """
 
     data_dir = 'data/dreambooth/'  # Relative path from project folder
-    generation_dir = 'evaluation_images/'  # Model will store the generated images used during the evaluation process
+    generation_dir = 'images_evaluation/modified'  # Generated images used during the evaluation process
 
     subject_cfgs = [
         { 'token_identifier': 'sks backpack', 'living': False, 'training_steps': 1600 },

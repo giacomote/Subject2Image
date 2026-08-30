@@ -6,7 +6,7 @@ class PipelineConfig:
 
     data_dir = 'data/dreambooth/cat'  # Relative path from project folder
     adaptation_dir = 'adaptation/'
-    results_dir = 'results/'
+    results_dir = 'images_inference/modified'
 
     token_identifier = 'sks cat'
     training_steps = 800

@@ -6,6 +6,19 @@ The goal of this project is to **explore subject-driven image generation** throu
 two pipelines capable of generating diverse images featuring a specific, user-defined subject while preserving high
 visual consistency across different contexts and scenarios.
 
+## Overview
+
+This project implements **two distinct pipelines** for subject-driven image generation:
+- **Baseline Pipeline**: The reference implementation that establishes the foundational approach to subject-driven
+  generation, providing a solid baseline for comparison and evaluation.
+- **Modified Pipeline**: An experimental variant built upon the baseline pipeline, incorporating additional techniques
+  and optimizations designed to enhance generation performance.
+
+> [!NOTE]
+> The modifications in *Modified Pipeline* are purely experimental in nature; while they aim to improve results, there
+> is no guarantee that they will consistently outperform the baseline approach.
+
+Both pipelines follow the same workflow (training, inference, and evaluation) and can be used independently.  
 
 ## 📜 Author & License
 
@@ -37,15 +50,19 @@ file.
     ├── data/                 # Datasets (create this directory before use)
     ├── hpc/                  # Scripts for running experiments on HPC clusters
     ├── images_evaluation/    # Images generated during the evaluation process
+    │   ├── baseline/
+    │   └── modified/
     ├── images_inference/     # Images generated during inference
+    │   ├── baseline/
+    │   └── modified/
     ├── logs/                 # Logs (output and errors)
+    ├── metrics/              # Evaluation metrics
     ├── pipeline_baseline/    # "Baseline" pipeline
     │   ├── config/           # Configuration files
     │   └── ...
     ├── pipeline_modified/    # "Modified" pipeline
     │   ├── config/           # Configuration files
     │   └── ...
-    ├── utils/                # Utility scripts and shared models
     ├── .gitignore
     ├── LICENSE
     ├── README.md

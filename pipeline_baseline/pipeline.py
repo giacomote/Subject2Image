@@ -12,7 +12,7 @@ from diffusers.optimization import get_cosine_schedule_with_warmup
 from peft import LoraConfig, get_peft_model, get_peft_model_state_dict
 from safetensors.torch import save_file
 
-from utils.custom_dataset import CustomDataset
+from pipeline_baseline.custom_dataset import CustomDataset
 
 
 class BaselinePipe:

@@ -20,8 +20,8 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.append(str(PROJECT_ROOT))
 
 from pipeline_modified.pipeline import ModifiedPipe
-from utils.subject_metrics import SubjectMetrics
-from utils.dataset_metrics import DatasetMetrics
+from metrics.subject_metrics import SubjectMetrics
+from metrics.dataset_metrics import DatasetMetrics
 
 from pipeline_modified.config.pipeline_config import PipelineConfig
 from pipeline_modified.config.evaluation_config import EvaluationConfig
@@ -144,7 +144,7 @@ def evaluate_subject_metrics(
     if mean_dino_i < 0.60:
         print(f'[WARN] Average DINO-I ({mean_dino_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.60)')
     if mean_lpips > 0.40:
-         print(f'[WARN] Average LPIPS ({mean_lpips:.4f}) is high for \'{subject_name}\' (thresh: 0.40)')
+        print(f'[WARN] Average LPIPS ({mean_lpips:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.40)')
 
     return mean_clip_t, mean_clip_i, mean_dino_i, mean_lpips
 
