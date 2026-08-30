@@ -16,12 +16,14 @@ if __name__ == '__main__':
     pipe = ModifiedPipe()
 
     if os.path.exists(PipelineConfig.data_dir):
-        pipe.fine_tuning_lora(
+        pipe.fine_tuning_lora_with_textual_inversion(
             image_folder=PipelineConfig.data_dir,
             output_dir=PipelineConfig.adaptation_dir,
+            placeholder_token=PipelineConfig.placeholder_token,
+            initializer_token=PipelineConfig.class_token,
             instance_prompt=PipelineConfig.training_prompt,
-            max_train_steps=PipelineConfig.training_steps,
-            learning_rate=1e-4
+            ti_text_encoders=PipelineConfig.ti_text_encoders,
+            max_train_steps=PipelineConfig.training_steps
         )
     else:
         print(f'[ERROR] Please create folder \'{PipelineConfig.data_dir}\' and insert 5-10 images of the subject')

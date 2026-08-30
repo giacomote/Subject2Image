@@ -21,5 +21,7 @@ if __name__ == '__main__':
     pipe.generate_personalized_image(
         lora_dir=PipelineConfig.adaptation_dir,
         prompt=PipelineConfig.generation_prompt,
+        placeholder_token=PipelineConfig.placeholder_token,
+        initializer_token=PipelineConfig.class_token,
         output_filename=output_file
     )
