@@ -6,6 +6,9 @@ class EvaluationConfig:
     data_dir = 'data/dreambooth/'  # Relative path from project folder
     generation_dir = 'images_evaluation/modified'  # Generated images used during the evaluation process
 
+    # Textual Inversion configuration: [1, 2] for two text encoders, [1, 2, 3] for three text encoders
+    ti_text_encoders = [1, 2, 3]
+
     subject_cfgs = [
         { 'token_identifier': 'sks backpack', 'living': False, 'training_steps': 1600 },
         { 'token_identifier': 'sks backpack', 'living': False, 'training_steps': 1100 },

@@ -36,22 +36,29 @@ def train_and_generate_for_subject(
     test_prompts: list[str],
     samples_per_prompt: int,
     adaptation_dir: str,
-    subject_gen_dir: str
+    subject_gen_dir: str,
+    ti_text_encoders: list[int]
 ) -> str:
 
     print(f'\n--- Training and generating on subject \'{subject_name}\' ---\n')
 
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
-    print(f'[TG 1/2] Fine-Tuning (LoRA)...\n')
+    print(f'[TG 1/2] Fine-Tuning (Textual Inversion + LoRA)...\n')
+    tokens = token_identifier.strip().split(maxsplit=1)
+    placeholder_token = tokens[0] if len(tokens) > 0 else 'sks'
+    initializer_token = tokens[1] if len(tokens) > 1 else 'object'
+
     pipe = ModifiedPipe()
 
-    pipe.fine_tuning_lora(
+    pipe.fine_tuning_lora_with_textual_inversion(
         image_folder=data_dir,
         output_dir=adaptation_dir,
+        placeholder_token=placeholder_token,
+        initializer_token=initializer_token,
         instance_prompt=training_prompt,
-        max_train_steps=training_steps,
-        learning_rate=1e-4
+        ti_text_encoders=ti_text_encoders,
+        max_train_steps=training_steps
     )
     
     weights_path = os.path.join(adaptation_dir, 'mod_lora_weights.safetensors')
@@ -73,6 +80,8 @@ def train_and_generate_for_subject(
             pipe.generate_personalized_image(
                 lora_dir=adaptation_dir,
                 prompt=prompt.format(token_identifier),
+                placeholder_token=placeholder_token,
+                initializer_token=initializer_token,
                 output_filename=output_filename
             )
             
@@ -201,7 +210,8 @@ if __name__ == '__main__':
             test_prompts=test_prompts,
             samples_per_prompt=EvaluationConfig.samples_per_prompt,
             adaptation_dir=PipelineConfig.adaptation_dir,
-            subject_gen_dir=EvaluationConfig.generation_dir
+            subject_gen_dir=EvaluationConfig.generation_dir,
+            ti_text_encoders=EvaluationConfig.ti_text_encoders
         )
 
         # Computing subject metrics
