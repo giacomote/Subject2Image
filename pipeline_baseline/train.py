@@ -13,13 +13,12 @@ from pipeline_baseline.config.pipeline_config import PipelineConfig
 
 
 if __name__ == '__main__':
-    pipe = BaselinePipe()
-
     if os.path.exists(PipelineConfig.data_dir):
+        pipe = BaselinePipe()
         pipe.fine_tuning_lora(
             image_folder=PipelineConfig.data_dir,
             output_dir=PipelineConfig.adaptation_dir,
-            instance_prompt=PipelineConfig.training_prompt,
+            instance_prompt=PipelineConfig.training_prompt.format(PipelineConfig.token_identifier),
             max_train_steps=1200,
             learning_rate=1e-4
         )

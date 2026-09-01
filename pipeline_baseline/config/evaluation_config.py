@@ -3,40 +3,40 @@ class EvaluationConfig:
     Set some configuration variables for the model evaluation process.
     """
 
-    data_dir = 'data/dreambooth/'  # Relative path from project folder
+    data_dir = 'data/'  # Relative path from project folder
     generation_dir = 'images_evaluation/baseline'  # Generated images used during the evaluation process
 
     subject_cfgs = [
-        { 'token_identifier': 'sks backpack', 'living': False },
-        { 'token_identifier': 'sks backpack', 'living': False },
-        { 'token_identifier': 'sks stuffed animal', 'living': False },
-        { 'token_identifier': 'sks bowl', 'living': False },
-        { 'token_identifier': 'sks can', 'living': False },
-        { 'token_identifier': 'sks candle', 'living': False },
-        { 'token_identifier': 'sks cat', 'living': True },
-        { 'token_identifier': 'sks cat', 'living': True },
-        { 'token_identifier': 'sks clock', 'living': False },
-        { 'token_identifier': 'sks sneaker', 'living': False },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks dog', 'living': True },
-        { 'token_identifier': 'sks toy', 'living': False },
-        { 'token_identifier': 'sks boot', 'living': False },
-        { 'token_identifier': 'sks stuffed animal', 'living': False },
-        { 'token_identifier': 'sks toy', 'living': False },
-        { 'token_identifier': 'sks sunglasses', 'living': False },
-        { 'token_identifier': 'sks toy', 'living': False },
-        { 'token_identifier': 'sks toy', 'living': False },
-        { 'token_identifier': 'sks cartoon', 'living': True },
-        { 'token_identifier': 'sks toy', 'living': False },
-        { 'token_identifier': 'sks sneaker', 'living': False },
-        { 'token_identifier': 'sks teapot', 'living': False },
-        { 'token_identifier': 'sks vase', 'living': False },
-        { 'token_identifier': 'sks stuffed animal', 'living': False }
+        { 'token_identifier': '<sks> backpack', 'living': False },
+        { 'token_identifier': '<sks> backpack', 'living': False },
+        { 'token_identifier': '<sks> stuffed animal', 'living': False },
+        { 'token_identifier': '<sks> bowl', 'living': False },
+        { 'token_identifier': '<sks> can', 'living': False },
+        { 'token_identifier': '<sks> candle', 'living': False },
+        { 'token_identifier': '<sks> cat', 'living': True },
+        { 'token_identifier': '<sks> cat', 'living': True },
+        { 'token_identifier': '<sks> clock', 'living': False },
+        { 'token_identifier': '<sks> sneaker', 'living': False },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> dog', 'living': True },
+        { 'token_identifier': '<sks> toy', 'living': False },
+        { 'token_identifier': '<sks> boot', 'living': False },
+        { 'token_identifier': '<sks> stuffed animal', 'living': False },
+        { 'token_identifier': '<sks> toy', 'living': False },
+        { 'token_identifier': '<sks> sunglasses', 'living': False },
+        { 'token_identifier': '<sks> toy', 'living': False },
+        { 'token_identifier': '<sks> toy', 'living': False },
+        { 'token_identifier': '<sks> cartoon', 'living': True },
+        { 'token_identifier': '<sks> toy', 'living': False },
+        { 'token_identifier': '<sks> sneaker', 'living': False },
+        { 'token_identifier': '<sks> teapot', 'living': False },
+        { 'token_identifier': '<sks> vase', 'living': False },
+        { 'token_identifier': '<sks> stuffed animal', 'living': False }
     ]
 
     training_prompts = [

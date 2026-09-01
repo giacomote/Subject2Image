@@ -17,10 +17,13 @@ if __name__ == '__main__':
 
     output_file = PipelineConfig.results_dir + str(len(os.listdir(PipelineConfig.results_dir))) + '.png'
 
+    token_identifier = f'{PipelineConfig.placeholder_token} {PipelineConfig.class_token}'
+    generation_prompt = PipelineConfig.generation_prompt.format(token_identifier)
+
     pipe = ModifiedPipe()
     pipe.generate_personalized_image(
         lora_dir=PipelineConfig.adaptation_dir,
-        prompt=PipelineConfig.generation_prompt,
+        prompt=generation_prompt,
         placeholder_token=PipelineConfig.placeholder_token,
         initializer_token=PipelineConfig.class_token,
         output_filename=output_file

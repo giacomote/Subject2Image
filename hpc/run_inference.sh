@@ -71,6 +71,7 @@ GPU_INFO=$(echo "$GPU_RAW" | awk -F',' '{sub(/^NVIDIA */, "", $1); printf "%s (%
 
 echo "=================================================="
 echo "Job name        : $SLURM_JOB_NAME"
+echo "Mode            : $MODE"
 echo "Job ID          : $SLURM_JOB_ID"
 echo "Running on node : $(hostname)"
 echo "Assigned GPU    : $GPU_INFO"

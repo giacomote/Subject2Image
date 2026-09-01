@@ -112,7 +112,8 @@ def evaluate_subject_metrics(
     lpips_scores = []
 
     for p_idx, prompt in enumerate(test_prompts):
-        formatted_prompt = prompt.format(token_identifier)
+        class_token = token_identifier.strip().split(maxsplit=1)[1]
+        formatted_prompt = prompt.format(class_token)
 
         for s_idx in range(samples_per_prompt):
             sample_path = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')

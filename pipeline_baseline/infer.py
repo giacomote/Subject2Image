@@ -20,6 +20,6 @@ if __name__ == '__main__':
     pipe = BaselinePipe()
     pipe.generate_personalized_image(
         lora_dir=PipelineConfig.adaptation_dir,
-        prompt=PipelineConfig.generation_prompt,
+        prompt=PipelineConfig.generation_prompt.format(PipelineConfig.token_identifier),
         output_filename=output_file
     )

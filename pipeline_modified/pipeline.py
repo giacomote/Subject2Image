@@ -32,9 +32,9 @@ class ModifiedPipe:
         self,
         image_folder: str,
         output_dir: str,
-        placeholder_token: str = 'sks',
+        placeholder_token: str = '<sks>',
         initializer_token: str = 'dog',
-        instance_prompt: str = 'A photo of sks dog',
+        instance_prompt: str = 'A photo of <sks> dog',
         max_train_steps: int = 1200,
         lora_learning_rate: float = 5e-5,
         ti_learning_rate: float = 1e-4,
@@ -64,7 +64,7 @@ class ModifiedPipe:
                 continue
 
             num_added_tokens = tokenizer.add_tokens(placeholder_token)
-            assert num_added_tokens == 1, (f'Placeholder token \'{placeholder_token}\' was not added as exactly one token.')
+            assert num_added_tokens == 1, (f'[ERROR] Placeholder token \'{placeholder_token}\' was not added as exactly one token')
 
             placeholder_id = tokenizer.convert_tokens_to_ids(placeholder_token)
             placeholder_token_ids.append(placeholder_id)
@@ -230,7 +230,7 @@ class ModifiedPipe:
         self,
         lora_dir: str,
         prompt: str,
-        placeholder_token: str = 'sks',
+        placeholder_token: str = '<sks>',
         initializer_token: str = 'dog',
         output_filename: str = 'result.png',
         device: str = 'cuda'
@@ -262,7 +262,7 @@ class ModifiedPipe:
                         continue
 
                     num_added_tokens = tokenizer.add_tokens(placeholder_token)
-                    assert num_added_tokens == 1, (f'Placeholder token \'{placeholder_token}\' was not added as exactly one token.')
+                    assert num_added_tokens == 1, (f'[ERROR] Placeholder token \'{placeholder_token}\' was not added as exactly one token')
 
                     ph_id = tokenizer.convert_tokens_to_ids(placeholder_token)
                     text_encoder.resize_token_embeddings(len(tokenizer), mean_resizing=False)

@@ -32,7 +32,7 @@ class BaselinePipe:
         self,
         image_folder: str,
         output_dir: str,
-        instance_prompt: str = 'A photo of sks dog',
+        instance_prompt: str = 'A photo of <sks> dog',
         max_train_steps: int = 1200,
         learning_rate: float = 1e-4,
         device: str = 'cuda'

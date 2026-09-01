@@ -29,7 +29,8 @@ from pipeline_modified.config.evaluation_config import EvaluationConfig
 
 def train_and_generate_for_subject(
     subject_name: str,
-    token_identifier: str,
+    placeholder_token: str,
+    initializer_token: str,
     data_dir: str,
     training_steps: int,
     training_prompt: str,
@@ -45,10 +46,6 @@ def train_and_generate_for_subject(
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
     print(f'[TG 1/2] Fine-Tuning (Textual Inversion + LoRA)...\n')
-    tokens = token_identifier.strip().split(maxsplit=1)
-    placeholder_token = tokens[0] if len(tokens) > 0 else 'sks'
-    initializer_token = tokens[1] if len(tokens) > 1 else 'object'
-
     pipe = ModifiedPipe()
 
     pipe.fine_tuning_lora_with_textual_inversion(
@@ -76,6 +73,7 @@ def train_and_generate_for_subject(
     for p_idx, prompt in enumerate(test_prompts):
         for s_idx in range(samples_per_prompt):
             output_filename = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
+            token_identifier = f'{placeholder_token}, {initializer_token}'
             
             pipe.generate_personalized_image(
                 lora_dir=adaptation_dir,
@@ -97,7 +95,7 @@ def train_and_generate_for_subject(
 
 def evaluate_subject_metrics(
     subject_name: str,
-    token_identifier: str,
+    class_token: str,
     data_dir: str,
     subject_gen_dir: str,
     test_prompts: list[str],
@@ -122,7 +120,7 @@ def evaluate_subject_metrics(
     lpips_scores = []
 
     for p_idx, prompt in enumerate(test_prompts):
-        formatted_prompt = prompt.format(token_identifier)
+        formatted_prompt = prompt.format(class_token)
 
         for s_idx in range(samples_per_prompt):
             sample_path = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
@@ -198,12 +196,11 @@ if __name__ == '__main__':
         else:
             test_prompts = EvaluationConfig.generation_prompts_object
 
-        token_id = EvaluationConfig.subject_cfgs[subject_idx]['token_identifier']
-
         # Training the model and generating images for each subject
         subject_gen_dir = train_and_generate_for_subject(
             subject_name=subject_name,
-            token_identifier=token_id,
+            placeholder_token=EvaluationConfig.subject_cfgs[subject_idx]['placeholder_token'],
+            initializer_token=EvaluationConfig.subject_cfgs[subject_idx]['class_token'],
             data_dir=data_dir,
             training_steps=EvaluationConfig.subject_cfgs[subject_idx]['training_steps'],
             training_prompt=EvaluationConfig.training_prompts[subject_idx],
@@ -217,7 +214,7 @@ if __name__ == '__main__':
         # Computing subject metrics
         sub_clip_t, sub_clip_i, sub_dino_i, sub_lpips = evaluate_subject_metrics(
             subject_name=subject_name,
-            token_identifier=token_id,
+            class_token=EvaluationConfig.subject_cfgs[subject_idx]['class_token'],
             data_dir=data_dir,
             subject_gen_dir=subject_gen_dir,
             test_prompts=test_prompts,
