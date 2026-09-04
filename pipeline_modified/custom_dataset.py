@@ -11,7 +11,9 @@ class CustomDataset(Dataset):
     Load and prepare the subject images from a specified folder.
     """
 
-    def __init__(self, image_folder: str, size: int = 1024, multiplier: int = 2):
+    def __init__(self, image_folder: str, size: int = 1024, augmentation_target: int = 10):
+        self.target = augmentation_target
+
         self.image_paths = [
             os.path.join(image_folder, f)
             for f in os.listdir(image_folder)
@@ -21,7 +23,6 @@ class CustomDataset(Dataset):
         if len(self.image_paths) == 0:
             raise ValueError(f'({image_folder}) No images found')
 
-        self.target = len(self.image_paths) * multiplier
         print(f'[INFO] Found {len(self.image_paths)} real images. Target: {self.target}')
         
         self.base_transform = transforms.Compose([
@@ -33,6 +34,7 @@ class CustomDataset(Dataset):
         # Augmentation pipeline
         self.aug_transform = transforms.Compose([
             transforms.Resize(int(size * 1.15), interpolation=transforms.InterpolationMode.BILINEAR),
+            transforms.RandomRotation(degrees=20, interpolation=transforms.InterpolationMode.BILINEAR),
             transforms.RandomCrop(size),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
@@ -43,8 +45,8 @@ class CustomDataset(Dataset):
         return self.target
 
     def __getitem__(self, idx):
-        if idx > self.target:
-            idx -= self.target
+        # Bringing the index in the range [0, self.target]
+        idx = idx % self.target
 
         # Locating which real file must be opened
         real_idx = idx % len(self.image_paths)

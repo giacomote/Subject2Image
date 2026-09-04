@@ -3,49 +3,50 @@ class EvaluationConfig:
     Set some configuration variables for the model evaluation process.
     """
 
-    data_dir = 'data/'  # Relative path from project folder
-    generation_dir = 'images_evaluation/modified'  # Generated images used during the evaluation process
-
-    # Textual Inversion configuration: [1, 2] for two text encoders, [1, 2, 3] for three text encoders
-    ti_text_encoders = [1, 2, 3]
-
+    # Folder names must end with a '/' character
+    # They can be either absolute paths or relative paths (starting from the repository folder)
+    data_dir = 'data/'
+    adaptation_dir = 'adaptation_evaluation/'
+    generation_dir = 'images_evaluation/modified_lora/'  # Generated images used during the evaluation process
+    
     subject_cfgs = [
-        { 'placeholder_token': '<sks>', 'class_token': 'backpack', 'living': False, 'training_steps': 1600 },
-        { 'placeholder_token': '<sks>', 'class_token': 'backpack', 'living': False, 'training_steps': 1100 },
-        { 'placeholder_token': '<sks>', 'class_token': 'stuffed animal', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'bowl', 'living': False, 'training_steps': 1000 },
-        { 'placeholder_token': '<sks>', 'class_token': 'can', 'living': False, 'training_steps': 1400 },
-        { 'placeholder_token': '<sks>', 'class_token': 'candle', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'cat', 'living': True, 'training_steps': 800 },
-        { 'placeholder_token': '<sks>', 'class_token': 'cat', 'living': True, 'training_steps': 800 },
-        { 'placeholder_token': '<sks>', 'class_token': 'clock', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'sneaker', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'dog', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'toy', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'boot', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'stuffed animal', 'living': False, 'training_steps': 1100 },
-        { 'placeholder_token': '<sks>', 'class_token': 'toy', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'sunglasses', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'toy', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'toy', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'cartoon', 'living': True, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'toy', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'sneaker', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'teapot', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'vase', 'living': False, 'training_steps': 1200 },
-        { 'placeholder_token': '<sks>', 'class_token': 'stuffed animal', 'living': False, 'training_steps': 1100 }
+        { 'class_token': 'backpack', 'living': False },
+        { 'class_token': 'backpack', 'living': False },
+        { 'class_token': 'stuffed animal', 'living': False },
+        { 'class_token': 'bowl', 'living': False },
+        { 'class_token': 'can', 'living': False },
+        { 'class_token': 'candle', 'living': False },
+        { 'class_token': 'cat', 'living': True },
+        { 'class_token': 'cat', 'living': True },
+        { 'class_token': 'clock', 'living': False },
+        { 'class_token': 'sneaker', 'living': False },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'dog', 'living': True },
+        { 'class_token': 'toy', 'living': False },
+        { 'class_token': 'boot', 'living': False },
+        { 'class_token': 'stuffed animal', 'living': False },
+        { 'class_token': 'toy', 'living': False },
+        { 'class_token': 'sunglasses', 'living': False },
+        { 'class_token': 'toy', 'living': False },
+        { 'class_token': 'toy', 'living': False },
+        { 'class_token': 'cartoon', 'living': True },
+        { 'class_token': 'toy', 'living': False },
+        { 'class_token': 'sneaker', 'living': False },
+        { 'class_token': 'teapot', 'living': False },
+        { 'class_token': 'vase', 'living': False },
+        { 'class_token': 'stuffed animal', 'living': False }
     ]
 
-    training_prompts = [
-        f'A photo of {cfg["placeholder_token"]} {cfg["class_token"]}'
-        for cfg in subject_cfgs
-    ]
+    placeholder_token = '<sks>'
+
+    training_prompts = []
+    for cfg in subject_cfgs:
+        training_prompts.append(f'A photo of {placeholder_token} {cfg["class_token"]}')
 
     generation_prompts_live = [  # Keep the number of prompts the same as for 'generation_prompts_object'
         'A high quality studio photograph of {0} sitting on a sofa',

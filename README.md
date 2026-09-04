@@ -9,16 +9,16 @@ visual consistency across different contexts and scenarios.
 ## Overview
 
 This project implements **two distinct pipelines** for subject-driven image generation:
-- **Baseline Pipeline**: The reference implementation that establishes the foundational approach to subject-driven
+- **Baseline LoRA Pipeline**: The reference implementation that establishes the foundational approach to subject-driven
   generation, providing a solid baseline for comparison and evaluation.
-- **Modified Pipeline**: An experimental variant built upon the baseline pipeline, incorporating additional techniques
-  and optimizations designed to enhance generation performance.
+- **Modified LoRA Pipeline**: An experimental variant built upon the baseline pipeline, incorporating a data
+  augmentation stage to increase the number of the subject images used during training.
 
 > [!NOTE]
 > The modifications in *Modified Pipeline* are purely experimental in nature; while they aim to improve results, there
 > is no guarantee that they will consistently outperform the baseline approach.
 
-Both pipelines follow the same workflow (training, inference, and evaluation) and can be used independently.  
+Both pipelines follow the same workflow (training, inference, and evaluation) and can be used independently.
 
 ## 📜 Author & License
 
@@ -46,27 +46,24 @@ file.
 ## 📂 Project Structure
 
     Subject2Image/
-    ├── adaptation/           # Fine-tuned model weights generated during training
     ├── data/                 # Datasets (create this directory before use)
     ├── hpc/                  # Scripts for running experiments on HPC clusters
-    ├── images_evaluation/    # Images generated during the evaluation process
-    │   ├── baseline/
-    │   └── modified/
-    ├── images_inference/     # Images generated during inference
-    │   ├── baseline/
-    │   └── modified/
-    ├── logs/                 # Logs (output and errors)
     ├── metrics/              # Evaluation metrics
-    ├── pipeline_baseline/    # "Baseline" pipeline
+    ├── pipeline_baseline/    # "Baseline LoRA" pipeline
     │   ├── config/           # Configuration files
     │   └── ...
-    ├── pipeline_modified/    # "Modified" pipeline
+    ├── pipeline_modified/    # "Modified LoRA" pipeline
     │   ├── config/           # Configuration files
     │   └── ...
     ├── .gitignore
     ├── LICENSE
     ├── README.md
     └── requirements.txt      # Python requirements
+
+> [!NOTE]
+> Some more folders are automatically created while running project scripts.  
+> Those folders are needed to save results and temporary files.  
+> All of them are specified in the pipelines configurations files.
 
 ## 🛠️ Installation
 
@@ -219,6 +216,10 @@ requiring manual training and inference for each one.
 ## 📈 Results
 
 The generated images and evaluation results are automatically organized into dedicated output directories.
+
+> [!NOTE]
+> All the cited directories are the default ones.  
+> If you change them in the pipelines configuration files they may be different.
 
 ### Training & Inference
 

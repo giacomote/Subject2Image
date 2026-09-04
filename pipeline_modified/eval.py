@@ -23,39 +23,33 @@ from pipeline_modified.pipeline import ModifiedPipe
 from metrics.subject_metrics import SubjectMetrics
 from metrics.dataset_metrics import DatasetMetrics
 
-from pipeline_modified.config.pipeline_config import PipelineConfig
 from pipeline_modified.config.evaluation_config import EvaluationConfig
 
 
 def train_and_generate_for_subject(
     subject_name: str,
-    placeholder_token: str,
-    initializer_token: str,
+    token_identifier: str,
     data_dir: str,
-    training_steps: int,
     training_prompt: str,
     test_prompts: list[str],
     samples_per_prompt: int,
     adaptation_dir: str,
-    subject_gen_dir: str,
-    ti_text_encoders: list[int]
+    subject_gen_dir: str
 ) -> str:
 
     print(f'\n--- Training and generating on subject \'{subject_name}\' ---\n')
 
     assert os.path.exists(data_dir), f'[ERROR] Data folder ({data_dir}) not found'
 
-    print(f'[TG 1/2] Fine-Tuning (Textual Inversion + LoRA)...\n')
+    print(f'[TG 1/2] Fine-Tuning (LoRA)...\n')
     pipe = ModifiedPipe()
 
-    pipe.fine_tuning_lora_with_textual_inversion(
+    pipe.fine_tuning_lora(
         image_folder=data_dir,
         output_dir=adaptation_dir,
-        placeholder_token=placeholder_token,
-        initializer_token=initializer_token,
         instance_prompt=training_prompt,
-        ti_text_encoders=ti_text_encoders,
-        max_train_steps=training_steps
+        max_train_steps=1200,
+        learning_rate=1e-4
     )
     
     weights_path = os.path.join(adaptation_dir, 'mod_lora_weights.safetensors')
@@ -73,13 +67,10 @@ def train_and_generate_for_subject(
     for p_idx, prompt in enumerate(test_prompts):
         for s_idx in range(samples_per_prompt):
             output_filename = os.path.join(subject_gen_dir, f'sample_P{p_idx}_S{s_idx}.png')
-            token_identifier = f'{placeholder_token}, {initializer_token}'
             
             pipe.generate_personalized_image(
                 lora_dir=adaptation_dir,
                 prompt=prompt.format(token_identifier),
-                placeholder_token=placeholder_token,
-                initializer_token=initializer_token,
                 output_filename=output_filename
             )
             
@@ -144,14 +135,6 @@ def evaluate_subject_metrics(
     print(f' - Avg LPIPS (Image)  : {mean_lpips:.4f}')
     print('--------------------------------------------------')
 
-    if mean_clip_t < 0.25:
-        print(f'[WARN] Average CLIP-T ({mean_clip_t:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.25)')
-    if mean_clip_i < 0.70:
-        print(f'[WARN] Average CLIP-I ({mean_clip_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.70)')
-    if mean_dino_i < 0.60:
-        print(f'[WARN] Average DINO-I ({mean_dino_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.60)')
-    if mean_lpips > 0.40:
-        print(f'[WARN] Average LPIPS ({mean_lpips:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.40)')
 
     return mean_clip_t, mean_clip_i, mean_dino_i, mean_lpips
 
@@ -196,25 +179,26 @@ if __name__ == '__main__':
         else:
             test_prompts = EvaluationConfig.generation_prompts_object
 
+        placeholder_token = EvaluationConfig.placeholder_token
+        class_token = EvaluationConfig.subject_cfgs[subject_idx]["class_token"]
+        token_identifier = f'{placeholder_token} {class_token}'
+
         # Training the model and generating images for each subject
         subject_gen_dir = train_and_generate_for_subject(
             subject_name=subject_name,
-            placeholder_token=EvaluationConfig.subject_cfgs[subject_idx]['placeholder_token'],
-            initializer_token=EvaluationConfig.subject_cfgs[subject_idx]['class_token'],
+            token_identifier=token_identifier,
             data_dir=data_dir,
-            training_steps=EvaluationConfig.subject_cfgs[subject_idx]['training_steps'],
             training_prompt=EvaluationConfig.training_prompts[subject_idx],
             test_prompts=test_prompts,
             samples_per_prompt=EvaluationConfig.samples_per_prompt,
-            adaptation_dir=PipelineConfig.adaptation_dir,
-            subject_gen_dir=EvaluationConfig.generation_dir,
-            ti_text_encoders=EvaluationConfig.ti_text_encoders
+            adaptation_dir=EvaluationConfig.adaptation_dir,
+            subject_gen_dir=EvaluationConfig.generation_dir
         )
 
         # Computing subject metrics
         sub_clip_t, sub_clip_i, sub_dino_i, sub_lpips = evaluate_subject_metrics(
             subject_name=subject_name,
-            class_token=EvaluationConfig.subject_cfgs[subject_idx]['class_token'],
+            class_token=class_token,
             data_dir=data_dir,
             subject_gen_dir=subject_gen_dir,
             test_prompts=test_prompts,

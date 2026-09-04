@@ -23,7 +23,6 @@ from pipeline_baseline.pipeline import BaselinePipe
 from metrics.subject_metrics import SubjectMetrics
 from metrics.dataset_metrics import DatasetMetrics
 
-from pipeline_baseline.config.pipeline_config import PipelineConfig
 from pipeline_baseline.config.evaluation_config import EvaluationConfig
 
 
@@ -87,7 +86,7 @@ def train_and_generate_for_subject(
 
 def evaluate_subject_metrics(
     subject_name: str,
-    token_identifier: str,
+    class_token: str,
     data_dir: str,
     subject_gen_dir: str,
     test_prompts: list[str],
@@ -112,7 +111,6 @@ def evaluate_subject_metrics(
     lpips_scores = []
 
     for p_idx, prompt in enumerate(test_prompts):
-        class_token = token_identifier.strip().split(maxsplit=1)[1]
         formatted_prompt = prompt.format(class_token)
 
         for s_idx in range(samples_per_prompt):
@@ -137,14 +135,6 @@ def evaluate_subject_metrics(
     print(f' - Avg LPIPS (Image)  : {mean_lpips:.4f}')
     print('--------------------------------------------------')
 
-    if mean_clip_t < 0.25:
-        print(f'[WARN] Average CLIP-T ({mean_clip_t:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.25)')
-    if mean_clip_i < 0.70:
-        print(f'[WARN] Average CLIP-I ({mean_clip_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.70)')
-    if mean_dino_i < 0.60:
-        print(f'[WARN] Average DINO-I ({mean_dino_i:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.60)')
-    if mean_lpips > 0.40:
-        print(f'[WARN] Average LPIPS ({mean_lpips:.4f}) not sufficient for \'{subject_name}\' (thresh: 0.40)')
 
     return mean_clip_t, mean_clip_i, mean_dino_i, mean_lpips
 
@@ -189,24 +179,26 @@ if __name__ == '__main__':
         else:
             test_prompts = EvaluationConfig.generation_prompts_object
 
-        token_id = EvaluationConfig.subject_cfgs[subject_idx]['token_identifier']
+        placeholder_token = EvaluationConfig.placeholder_token
+        class_token = EvaluationConfig.subject_cfgs[subject_idx]["class_token"]
+        token_identifier = f'{placeholder_token} {class_token}'
 
         # Training the model and generating images for each subject
         subject_gen_dir = train_and_generate_for_subject(
             subject_name=subject_name,
-            token_identifier=token_id,
+            token_identifier=token_identifier,
             data_dir=data_dir,
             training_prompt=EvaluationConfig.training_prompts[subject_idx],
             test_prompts=test_prompts,
             samples_per_prompt=EvaluationConfig.samples_per_prompt,
-            adaptation_dir=PipelineConfig.adaptation_dir,
+            adaptation_dir=EvaluationConfig.adaptation_dir,
             subject_gen_dir=EvaluationConfig.generation_dir
         )
 
         # Computing subject metrics
         sub_clip_t, sub_clip_i, sub_dino_i, sub_lpips = evaluate_subject_metrics(
             subject_name=subject_name,
-            token_identifier=token_id,
+            class_token=class_token,
             data_dir=data_dir,
             subject_gen_dir=subject_gen_dir,
             test_prompts=test_prompts,

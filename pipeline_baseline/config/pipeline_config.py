@@ -4,10 +4,14 @@ class PipelineConfig:
     These are used both during the training and the testing processes.
     """
 
-    data_dir = 'data/cat'  # Relative path from project folder
-    adaptation_dir = 'adaptation/'
-    results_dir = 'images_inference/baseline'
+    # Folder names must end with a '/' character
+    # They can be either absolute paths or relative paths (starting from the repository folder)
+    data_dir = 'data/cat/'
+    adaptation_dir = 'adaptation_inference/'
+    results_dir = 'images_inference/baseline_lora/'
 
-    token_identifier = '<sks> cat'
+    placeholder_token = '<sks>'
+    class_token = 'cat'
+
     training_prompt = 'A photo of {0}'
     generation_prompt = 'A high quality studio photograph of {0} on the Moon, with the United States flag behind his back'
