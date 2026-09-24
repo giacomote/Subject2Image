@@ -45,6 +45,7 @@ file.
 ## 📂 Project Structure
 
     Subject2Image/
+    ├── 00_docs/              # Documentation (paper / slideshow / qualitative comparison)
     ├── data/                 # Datasets (create this directory before use)
     ├── hpc/                  # Scripts for running experiments on HPC clusters
     ├── metrics/              # Evaluation metrics
